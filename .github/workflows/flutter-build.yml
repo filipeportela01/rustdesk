@@ -1119,7 +1119,18 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           submodules: recursive
-
+      - name: Fixar meu servidor e chave
+        shell: bash
+        run: |
+          MY_RS='rustdesk.ion.app.br'
+          MY_KEY='1o+XHiqRIHA5WLd5KNT+zmX1mE0byGB8ZjSbGcKJcTM='
+          f=libs/hbb_common/src/config.rs
+          echo "Antes:"; grep -n 'RENDEZVOUS_SERVERS\|RS_PUB_KEY' "$f"
+          sed -i -E "s|(pub const RENDEZVOUS_SERVERS: &\[&str\] = &\[)[^]]*(\];)|\1\"${MY_RS}\"\2|" "$f"
+          sed -i -E "s|(pub const RS_PUB_KEY: &str = )\"[^\"]*\";|\1\"${MY_KEY}\";|" "$f"
+          echo "Depois:"; grep -n 'RENDEZVOUS_SERVERS\|RS_PUB_KEY' "$f"
+          grep -qF "\"$MY_KEY\"" "$f" || { echo "ERRO: chave nao injetada"; exit 1; }
+          grep -qF "\"$MY_RS\"" "$f" || { echo "ERRO: servidor nao injetado"; exit 1; }
       - name: Install flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
